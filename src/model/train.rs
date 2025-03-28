@@ -5,7 +5,7 @@ use burn::{
     train::{
         LearnerBuilder, MetricEarlyStoppingStrategy, StoppingCondition,
         metric::{
-            AccuracyMetric, CpuMemory, CpuUse, LossMetric,
+            AccuracyMetric, ClassReduction, CpuMemory, CpuUse, LossMetric, PrecisionMetric,
             store::{Aggregate, Direction, Split},
         },
     },
@@ -101,6 +101,14 @@ pub fn run_training(device: WgpuDevice) -> anyhow::Result<()> {
         .summary()
         .metric_train_numeric(AccuracyMetric::new())
         .metric_valid_numeric(AccuracyMetric::new())
+        .metric_train_numeric(PrecisionMetric::multiclass(
+            1,                     // top_k = 1 for standard precision
+            ClassReduction::Macro, // Use Macro averaging
+        ))
+        .metric_valid_numeric(PrecisionMetric::multiclass(
+            1,                     // top_k = 1 for standard precision
+            ClassReduction::Macro, // Use Macro averaging
+        ))
         .metric_train_numeric(LossMetric::new())
         .metric_valid_numeric(LossMetric::new())
         .metric_train_numeric(CpuUse::new())
