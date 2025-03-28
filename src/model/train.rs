@@ -30,7 +30,7 @@ use crate::{
 // 4.  **Optimizer Step:** Adjust the network's weights based on the gradients and the learning rate. The goal is to slightly change weights to reduce the loss on the next iteration. Common optimizers like `Adam` use sophisticated methods to adapt the learning rate.
 // 5.  **Repeat:** Iterate through the dataset multiple times (epochs).
 pub fn run_training(device: WgpuDevice) -> anyhow::Result<()> {
-    create_artifact_dir(MODEL_ARTIFACT_DIR);
+    create_artifact_dir(format!("{}/training", MODEL_ARTIFACT_DIR).as_str());
 
     // Load the configuration
     let mut config = TrainingConfig::load(format!("{}/config.json", MODEL_ARTIFACT_DIR))
@@ -88,7 +88,7 @@ pub fn run_training(device: WgpuDevice) -> anyhow::Result<()> {
 
     // --- Learner Setup ---
     // The `Learner` orchestrates the training process using the components we defined.
-    let learner = LearnerBuilder::new(MODEL_ARTIFACT_DIR)
+    let learner = LearnerBuilder::new(format!("{}/training", MODEL_ARTIFACT_DIR).as_str())
         // Use Checkpointer for saving model state periodically
         .summary()
         .metric_train_numeric(AccuracyMetric::new())
