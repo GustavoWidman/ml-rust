@@ -30,12 +30,20 @@ use crate::{
 // 4.  **Optimizer Step:** Adjust the network's weights based on the gradients and the learning rate. The goal is to slightly change weights to reduce the loss on the next iteration. Common optimizers like `Adam` use sophisticated methods to adapt the learning rate.
 // 5.  **Repeat:** Iterate through the dataset multiple times (epochs).
 pub fn run_training(device: WgpuDevice) -> anyhow::Result<()> {
+    log::info!("Training on device {:?}", device);
+
     create_artifact_dir(format!("{}/training", MODEL_ARTIFACT_DIR).as_str());
 
     // Load the configuration
     let mut config = TrainingConfig::load(format!("{}/config.json", MODEL_ARTIFACT_DIR))
         .unwrap_or_else(|_| panic!("Failed to load config.json. Create one or use defaults."));
+    log::info!("Config:\n\n{}\n", config);
     let optim_config = config.optimizer.init(); // Initialize optimizer config
+
+    // Read stdin for a newline ("Press enter to continue...")
+    log::info!("Press enter to continue...");
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input)?;
 
     // Set random seed for reproducibility
     CustomAutodiffBackend::seed(config.seed);
@@ -114,11 +122,6 @@ pub fn run_training(device: WgpuDevice) -> anyhow::Result<()> {
         .build(model, optim_config, config.learning_rate);
 
     // --- Start Training ---
-    // log::info!(
-    //     "Training on device {:?} with config:\n{:#?}",
-    //     device, config
-    // );
-
     let model_trained = learner.fit(dataloader_train, dataloader_test);
 
     // --- Saving the Trained Model ---
